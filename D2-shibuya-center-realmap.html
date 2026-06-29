@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=6,user-scalable=yes">
+<title>Tokyo Solo Trip · D2-shibuya-center 實景動線地圖</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800;900&family=Space+Mono:wght@700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;box-sizing:border-box}html,body{height:100%}body{font-family:Inter,'Noto Sans TC',sans-serif}
+#map{position:absolute;inset:0;z-index:0}
+.hdr{position:absolute;top:0;left:0;right:0;z-index:600;background:#fff;border-bottom:2px solid #111;padding:8px 13px}
+.hdr .k{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.15em;color:#E4002B;text-transform:uppercase}
+.hdr h1{font-size:16px;font-weight:900;letter-spacing:-.4px;margin-top:1px}
+.hdr .s{font-size:11px;color:#555;margin-top:2px;line-height:1.3;max-height:28px;overflow:hidden}
+.pin{display:flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:50%;font-weight:800;font-size:12.5px;color:#fff;background:#111;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45)}
+.pin.opt{background:#fff;color:#E4002B;border:3px solid #E4002B}
+.pin.meal{background:#E4002B;border-radius:5px;width:26px;height:26px}
+.lg{position:absolute;bottom:15px;left:13px;z-index:600;background:#fff;border:2px solid #111;padding:5px 9px;font-size:11px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:94vw}
+.lg b{display:inline-block;width:13px;height:13px;border-radius:50%;background:#111;vertical-align:-2px;margin-right:3px}
+.lg i{display:inline-block;width:13px;height:13px;border-radius:50%;background:#fff;border:2px solid #111;vertical-align:-2px;margin-right:3px}
+.lg u{display:inline-block;width:13px;height:13px;background:#E4002B;border-radius:3px;vertical-align:-2px;margin-right:3px}
+.lg em{font-family:'Space Mono',monospace;font-style:normal;color:#E4002B;font-weight:700}
+.st{font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:12px;color:#13395c;white-space:nowrap;text-align:center;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff}
+.tl{font-family:'Noto Sans TC',sans-serif;font-weight:700;font-size:11px;line-height:1;color:#13395c;background:#fff;padding:2px 6px;border:1px solid #13395c;border-radius:3px;white-space:nowrap}
+.locbtn{position:absolute;bottom:74px;right:13px;z-index:600;width:46px;height:46px;border-radius:50%;background:#fff;border:2px solid #111;font-size:20px;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+.mepos{width:30px;height:30px;position:relative}
+.medot{position:absolute;left:9px;top:9px;width:12px;height:12px;border-radius:50%;background:#1a73e8;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45)}
+.mecone{position:absolute;inset:0;transform-origin:50% 50%}
+.mecone::before{content:'';position:absolute;left:9px;top:-5px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:13px solid #1a73e8;filter:drop-shadow(0 0 1px #fff)}
+.leaflet-popup-content{font-family:Inter,'Noto Sans TC',sans-serif;font-size:13px;margin:9px 11px;max-width:250px}
+.leaflet-popup-content b{font-size:14px}.leaflet-popup-content .cat{color:#E4002B;font-weight:700;font-size:11px;margin-top:2px}
+.leaflet-popup-content .sum{margin:5px 0;font-size:12.5px;line-height:1.45;color:#222}
+.leaflet-popup-content .i{color:#666;font-size:11.5px}.leaflet-popup-content a{color:#E4002B;font-weight:700;text-decoration:none}
+</style></head><body>
+<div id="map"></div>
+<div class="hdr"><div class="k">Tokyo Solo Trip · D2-shibuya-center 實景動線</div><h1 id="t"></h1><div class="s" id="s"></div></div>
+<div class="lg"><span><b style="background:#E4002B"></b>食</span><span><b style="background:#1a73e8"></b>景/影</span><span><b style="background:#0a8f3c"></b>購</span><span><b style="background:#8a2be2"></b>玩(夾/賞)</span><span><b style="background:#6b7280"></b>其他</span><span><i></i>可選</span><span><u></u>餐</span><span><em>┄┄</em>區內步行</span><span><em style="color:#13395c">╌╌</em>跨區交通</span><span>📍我的位置</span></div>
+<button class="locbtn" id="loc" title="我的位置">📍</button>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+<script>
+const D={"title": "Tokyo Solo Trip · D2-shibuya-center 實景動線地圖", "sub": "Center-gai／宇田川逛 fast-fashion（GU 打底／ZARA／WEGO）＋CP 古着（NEW YORK JOE 全品万円下／2nd STREET／BINGO／GRACE），MAGNET109＋RAGEBLUE 109 補貨，#C-pla 渋谷（2,354 種扭蛋）＋アニメイト（一番くじ），宮下公園打卡。夜收尾：GiGO／タイトー 夾公仔，MEGA ドンキ 一番賞（24h）。", "stops": [{"lat": 35.6608, "lon": 139.6975, "n": 1, "name": "GU 渋谷店", "cat": "", "intro": "Fast-fashion 最划算 basic，搭 RAGEBLUE 打底最划算；A2 出口徒歩3分。", "info": "11:00–21:00 [verified 2026-06] · ¥990–5,000", "naver": "https://www.google.com/maps/search/%E3%82%B8%E3%83%BC%E3%83%A6%E3%83%BC%20%E6%B8%8B%E8%B0%B7%E5%BA%97", "meal": false, "opt": false, "color": "#0a8f3c"}, {"lat": 35.658, "lon": 139.6958, "n": 2, "name": "NEW YORK JOE EXCHANGE 渋谷〔古著〕", "cat": "古著", "intro": "全品 ¥10,000 以下、tops 多 ¥1,000台、主 ¥2,000–7,000，渋谷 CP 王。", "info": "約12:00–20:00 ⟨用前核⟩ · ¥1,000–7,000", "naver": "https://www.google.com/maps/search/%E3%83%8B%E3%83%A5%E3%83%BC%E3%83%A8%E3%83%BC%E3%82%AF%E3%82%B8%E3%83%A7%E3%83%BC%20%E6%B8%8B%E8%B0%B7", "meal": false, "opt": false, "color": "#0a8f3c"}, {"lat": 35.6608, "lon": 139.6972, "n": 3, "name": "2nd STREET 渋谷〔古著〕", "cat": "古著", "intro": "易入手大型 used，價廉款多。", "info": "約11:00–21:00 ⟨用前核⟩ · ¥1,500–10,000", "naver": "https://www.google.com/maps/search/%E3%82%BB%E3%82%AB%E3%83%B3%E3%83%89%E3%82%B9%E3%83%88%E3%83%AA%E3%83%BC%E3%83%88%20%E6%B8%8B%E8%B0%B7", "meal": false, "opt": true, "color": "#0a8f3c"}, {"lat": 35.6598, "lon": 139.6968, "n": 4, "name": "BINGO 渋谷〔古著〕", "cat": "古著", "intro": "アメカジ brand 古着多、平。", "info": "約12:00–20:00 ⟨用前核⟩ · ¥2,000–8,000", "naver": "https://www.google.com/maps/search/%E3%83%93%E3%83%B3%E3%82%B4%20%E6%B8%8B%E8%B0%B7", "meal": false, "opt": true, "color": "#0a8f3c"}, {"lat": 35.6595, "lon": 139.6965, "n": 5, "name": "GRACE〔古著〕", "cat": "古著", "intro": "全美直入 American daily／vintage。", "info": "約12:00–20:00 ⟨用前核⟩ · ¥2,000–9,000", "naver": "https://www.google.com/maps/search/GRACE%20%E6%B8%8B%E8%B0%B7", "meal": false, "opt": true, "color": "#0a8f3c"}, {"lat": 35.66, "lon": 139.6978, "n": 6, "name": "WEGO 渋谷", "cat": "", "intro": "渋谷平價 USED＋original。", "info": "約11:00–21:00 ⟨用前核⟩ · ¥1,000–4,000", "naver": "https://www.google.com/maps/search/WEGO%20%E6%B8%8B%E8%B0%B7", "meal": false, "opt": true, "color": "#0a8f3c"}, {"lat": 35.6602, "lon": 139.698, "n": 7, "name": "ZARA 渋谷", "cat": "", "intro": "Center-gai，trend 平價、量產 OK。", "info": "約11:00–21:00 ⟨用前核⟩ · ¥3,000–10,000", "naver": "https://www.google.com/maps/search/ZARA%20%E6%B8%8B%E8%B0%B7", "meal": false, "opt": true, "color": "#0a8f3c"}, {"lat": 35.6595, "lon": 139.6985, "n": 8, "name": "MAGNET by SHIBUYA109", "cat": "", "intro": "前109men's，青年 value；1F 有 RAGEBLUE 109店。", "info": "10:00–21:00 [verified 2026-06] · ¥3,000–12,000", "naver": "https://www.google.com/maps/search/MAGNET%20by%20SHIBUYA109", "meal": false, "opt": true, "color": "#0a8f3c"}, {"lat": 35.6595, "lon": 139.6986, "n": 9, "name": "RAGEBLUE 渋谷109メンズ", "cat": "", "intro": "RAGEBLUE 第二間，MAGNET 1F，順道補貨。", "info": "10:00–21:00 [verified 2026-06] · ¥3,000–12,000", "naver": "https://www.google.com/maps/search/RAGEBLUE%20%E6%B8%8B%E8%B0%B7109%E3%83%A1%E3%83%B3%E3%82%BA", "meal": false, "opt": true, "color": "#0a8f3c"}, {"lat": 35.6602, "lon": 139.6982, "n": 10, "name": "#C-pla 渋谷センター街店〔ガチャ〕", "cat": "", "intro": "渋谷最大扭蛋，2,354 種，切合你 hobby。", "info": "約10:00–22:00 ⟨用前核⟩ · ¥300／回 起", "naver": "https://www.google.com/maps/search/%23C-pla%20%E6%B8%8B%E8%B0%B7%E3%82%BB%E3%83%B3%E3%82%BF%E3%83%BC%E8%A1%97%E5%BA%97", "meal": false, "opt": false, "color": "#8a2be2"}, {"lat": 35.6605, "lon": 139.6968, "n": 11, "name": "アニメイト渋谷〔角色・一番賞〕", "cat": "角色", "intro": "井之頭通，anime グッズ＋ガチャ＋一番くじ，適合你。", "info": "約11:00–21:00 ⟨用前核⟩ · ¥500–3,000", "naver": "https://www.google.com/maps/search/%E3%82%A2%E3%83%8B%E3%83%A1%E3%82%A4%E3%83%88%E6%B8%8B%E8%B0%B7", "meal": false, "opt": true, "color": "#0a8f3c"}, {"lat": 35.661, "lon": 139.7015, "n": 12, "name": "RAYARD MIYASHITA PARK〔影相〕", "cat": "", "intro": "屋上公園＋select（KITH 等）＋食街，打卡＋小逛。", "info": "商店11:00–21:00 ⟨用前核⟩ · 免費（逛）", "naver": "https://www.google.com/maps/search/%E3%83%9F%E3%83%A4%E3%82%B7%E3%82%BF%E3%83%91%E3%83%BC%E3%82%AF", "meal": false, "opt": true, "color": "#1a73e8"}, {"lat": 35.6595, "lon": 139.7028, "n": 13, "name": "GiGO 渋谷宮益坂〔夾公仔〕", "cat": "", "intro": "駅東口徒歩2分，全層クレーンゲーム，深夜營業。", "info": "10:00–23:30 [verified 2026-06-29] · ¥100／回 起", "naver": "https://www.google.com/maps/search/GiGO%20%E6%B8%8B%E8%B0%B7%E5%AE%AE%E7%9B%8A%E5%9D%82", "meal": false, "opt": false, "color": "#8a2be2"}, {"lat": 35.6585, "lon": 139.7016, "n": 14, "name": "タイトーステーション渋谷〔夾公仔〕", "cat": "", "intro": "駅徒歩1分，クレーン／メダル，–24:00 最夜。", "info": "10:00–24:00 [verified 2026-06-29] · ¥100／回 起", "naver": "https://www.google.com/maps/search/%E3%82%BF%E3%82%A4%E3%83%88%E3%83%BC%E3%82%B9%E3%83%86%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%20%E6%B8%8B%E8%B0%B7%E5%BA%97", "meal": false, "opt": true, "color": "#8a2be2"}, {"lat": 35.6588, "lon": 139.6968, "n": 15, "name": "MEGA ドン・キホーテ渋谷〔一番賞〕", "cat": "", "intro": "道玄坂，24h，常設一番くじ角，深夜照抽；到場即抽。", "info": "24時間 [verified 2026-06-29] · 一番くじ ¥700–800／回", "naver": "https://www.google.com/maps/search/MEGA%E3%83%89%E3%83%B3%E3%83%BB%E3%82%AD%E3%83%9B%E3%83%BC%E3%83%86%E6%B8%8B%E8%B0%B7%E6%9C%AC%E5%BA%97", "meal": false, "opt": false, "color": "#8a2be2"}], "paths": [[[35.6608, 139.6975], [35.658, 139.6958], [35.6608, 139.6972], [35.6598, 139.6968], [35.6595, 139.6965], [35.66, 139.6978], [35.6602, 139.698], [35.6595, 139.6985], [35.6595, 139.6986], [35.6602, 139.6982], [35.6605, 139.6968], [35.661, 139.7015], [35.6595, 139.7028], [35.6585, 139.7016], [35.6588, 139.6968]]], "links": [], "streets": [{"zh": "原宿駅", "lat": 35.6702, "lon": 139.7027}, {"zh": "竹下通り", "lat": 35.6714, "lon": 139.7045}, {"zh": "ラフォーレ", "lat": 35.6695, "lon": 139.7065}, {"zh": "キャットストリート", "lat": 35.6672, "lon": 139.7042}, {"zh": "渋谷・神南", "lat": 35.6623, "lon": 139.6984}, {"zh": "渋谷PARCO", "lat": 35.6627, "lon": 139.6975}, {"zh": "センター街", "lat": 35.6602, "lon": 139.6978}, {"zh": "道玄坂", "lat": 35.6585, "lon": 139.6968}, {"zh": "渋谷駅", "lat": 35.658, "lon": 139.7016}, {"zh": "宮益坂", "lat": 35.6595, "lon": 139.7028}]};
+document.getElementById('t').textContent=D.title;document.getElementById('s').textContent=D.sub;
+const map=L.map('map',{zoomControl:true}).setView([35.659773333333334, 139.69829333333334],16);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+const all=[];
+function draw(p){if(p.length<2)return;L.polyline(p,{color:'#fff',weight:8,opacity:.95,lineCap:'round'}).addTo(map);
+ const pl=L.polyline(p,{color:'#E4002B',weight:4.5,opacity:1,lineCap:'round'}).addTo(map);
+ if(L.Symbol&&L.polylineDecorator){L.polylineDecorator(pl,{patterns:[{offset:14,repeat:60,symbol:L.Symbol.arrowHead({pixelSize:12,headAngle:50,polygon:true,pathOptions:{fill:true,fillColor:'#fff',fillOpacity:1,color:'#E4002B',weight:1.5}})}]}).addTo(map);}}
+(D.paths||[]).forEach(draw);
+(D.links||[]).forEach(l=>{L.polyline(l.pts,{color:'#fff',weight:7,opacity:.9,lineCap:'round'}).addTo(map);
+ L.polyline(l.pts,{color:'#13395c',weight:4,opacity:1,dashArray:'3,9',lineCap:'round'}).addTo(map);
+ l.pts.forEach(p=>all.push(p));
+ if(l.label){const m=[(l.pts[0][0]+l.pts[1][0])/2,(l.pts[0][1]+l.pts[1][1])/2];
+  L.marker(m,{icon:L.divIcon({className:'',html:`<div class="tl">🚃 ${l.label}</div>`,iconSize:[160,18],iconAnchor:[80,9]}),interactive:false,zIndexOffset:-150}).addTo(map);}});
+D.stops.forEach(s=>{const ll=[s.lat,s.lon];all.push(ll);
+ const cls=s.meal?'pin meal':('pin'+(s.opt?' opt':''));
+ const stylv=s.meal?'':(s.opt?`border-color:${s.color};color:${s.color}`:`background:${s.color}`);
+ const ic=L.divIcon({className:'',html:`<div class="${cls}" style="${stylv}">${s.n}</div>`,iconSize:[27,27],iconAnchor:[13,13]});
+ const navlbl="Google \u5c0e\u822a";
+ const nav=s.naver?`<div style="margin-top:4px"><a href="${s.naver}" target="_blank" rel="noopener">${navlbl} ↗</a></div>`:'';
+ L.marker(ll,{icon:ic}).addTo(map).bindPopup(`<b>${s.n}. ${s.name}</b>`+(s.cat?`<div class="cat">${s.cat}</div>`:'')+(s.intro?`<div class="sum">${s.intro}</div>`:'')+(s.info?`<div class="i">${s.info}</div>`:'')+nav,{maxWidth:262});});
+(D.streets||[]).forEach(st=>L.marker([st.lat,st.lon],{icon:L.divIcon({className:'',html:`<div class="st">${st.zh}</div>`,iconSize:[88,16],iconAnchor:[44,8]}),interactive:false,zIndexOffset:-200}).addTo(map));
+if(all.length)map.fitBounds(L.latLngBounds(all).pad(0.15));
+var meM=null,meLL=null,hd=null,watching=false;
+function meIcon(h){var inner=(h==null)?'<div class="medot"></div>':'<div class="mecone" style="transform:rotate('+h+'deg)"></div><div class="medot"></div>';
+ return L.divIcon({className:'',iconSize:[30,30],iconAnchor:[15,15],html:'<div class="mepos">'+inner+'</div>'});}
+function meRender(){if(!meLL)return;if(meM)map.removeLayer(meM);meM=L.marker(meLL,{icon:meIcon(hd),zIndexOffset:1000,interactive:false}).addTo(map);}
+function onOri(e){var h=(e.webkitCompassHeading!=null)?e.webkitCompassHeading:((e.absolute&&e.alpha!=null)?(360-e.alpha):null);if(h!=null){hd=h;meRender();}}
+document.getElementById('loc').onclick=function(){
+ if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+  DeviceOrientationEvent.requestPermission().then(function(p){if(p==='granted')window.addEventListener('deviceorientation',onOri,true);}).catch(function(){});}
+ else if(window.DeviceOrientationEvent){window.addEventListener('deviceorientationabsolute',onOri,true);window.addEventListener('deviceorientation',onOri,true);}
+ if(!navigator.geolocation){alert('此裝置不支援定位');return;}
+ if(!watching){watching=true;
+  navigator.geolocation.watchPosition(function(p){meLL=[p.coords.latitude,p.coords.longitude];
+   if(hd==null&&p.coords.heading!=null&&!isNaN(p.coords.heading))hd=p.coords.heading;
+   if(!meM)map.setView(meLL,16);meRender();},
+   function(){alert('無法定位：請在 Safari 允許位置權限');},{enableHighAccuracy:true,maximumAge:1000,timeout:12000});}
+ else if(meLL){map.setView(meLL,16);}};
+</script></body></html>
