@@ -44,7 +44,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,att
 const all=[];
 function draw(p){if(p.length<2)return;L.polyline(p,{color:'#fff',weight:8,opacity:.95,lineCap:'round'}).addTo(map);
  const pl=L.polyline(p,{color:'#E4002B',weight:4.5,opacity:1,lineCap:'round'}).addTo(map);
- if(L.Symbol&&L.polylineDecorator){L.polylineDecorator(pl,{patterns:[{offset:14,repeat:60,symbol:L.Symbol.arrowHead({pixelSize:12,headAngle:50,polygon:true,pathOptions:{fill:true,fillColor:'#fff',fillOpacity:1,color:'#E4002B',weight:1.5}})}]}).addTo(map);}}
+ }
 (D.paths||[]).forEach(draw);
 (D.links||[]).forEach(l=>{L.polyline(l.pts,{color:'#fff',weight:7,opacity:.9,lineCap:'round'}).addTo(map);
  L.polyline(l.pts,{color:'#13395c',weight:4,opacity:1,dashArray:'3,9',lineCap:'round'}).addTo(map);
